@@ -13,14 +13,7 @@ A GUI app that remaps any key to any other key. Useful for games with limited re
 
 ## Default mappings
 
-These are loaded on first run:
-
-| From     | To |
-|----------|----|
-| Numpad 8 | W  |
-| Numpad 4 | A  |
-| Numpad 6 | D  |
-| Numpad 2 | S  |
+On first run this is empty. 
 
 ## Project files
 
@@ -58,17 +51,14 @@ uv run python keyboard.py
 
 ## Build the executable
 
+Manually (after `uv sync`):
 ```powershell
-.\build.bat
+uv run pyinstaller --onefile --windowed --add-data "mappings.json;." keyboard.py
 ```
 
-Or manually (after `uv sync`):
-
+If on windows:
 ```powershell
-uv run pyinstaller --onefile --windowed --name KeyRemapper ^
-    --hidden-import pynput.keyboard._win32 ^
-    --hidden-import pynput.mouse._win32 ^
-    keyboard.py
+.\build.bat
 ```
 
 The executable is written to `dist\KeyRemapper.exe`. Place or keep `mappings.json` in the same folder as the exe to persist your bindings.
