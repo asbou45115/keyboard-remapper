@@ -88,7 +88,7 @@ class RemapperEngine:
         return False
 
 
-def capture_key(timeout: float | None = None) -> str | None:
+def capture_key(timeout: float | None = None, cancel: Event | None = None) -> str | None:
     """Block until the user presses a key and return its string identifier."""
     captured: list[str | None] = [None]
     done = Event()
@@ -102,7 +102,22 @@ def capture_key(timeout: float | None = None) -> str | None:
 
     listener = keyboard.Listener(on_press=on_press, suppress=False)
     listener.start()
-    finished = done.wait(timeout=timeout)
+
+    if cancel is not None:
+        while not done.wait(timeout=0.1):
+            if cancel.is_set():
+                listener.stop()
+                listener.join(timeout=1)
+                return None
+            if timeout is not None:
+                # Approximate timeout when cancel event is provided
+                timeout -= 0.1
+                if timeout <= 0:
+                    break
+        finished = done.is_set()
+    else:
+        finished = done.wait(timeout=timeout)
+
     listener.stop()
     listener.join(timeout=1)
     return captured[0] if finished else None
