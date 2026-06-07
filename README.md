@@ -5,7 +5,7 @@ A GUI app that remaps any key to any other key. Useful for games with limited re
 ## Features
 
 - Remap any key to any other key via a simple GUI
-- Full-size on-screen keyboard — click keys you do not have (numpad, nav cluster, etc.)
+- Full-size on-screen keyboard - click keys you do not have (numpad, nav cluster, etc.)
 - Map a clicked key to any key on your physical keyboard with one press
 - Start/stop remapping without closing the app
 - Mappings saved automatically to `mappings.json`
