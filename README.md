@@ -7,7 +7,7 @@ A GUI app that remaps any key to any other key. Useful for games with limited re
 
 - Remap any key to any other key via a simple GUI
 - Full-size on-screen keyboard - pick target keys you do not have (numpad, nav cluster, etc.)
-- Press a key on your physical keyboard, then click the virtual key it should become
+- Click a target key on the visual keyboard, then press the physical key that should trigger it
 - Start/stop remapping without closing the app
 - Mappings saved automatically to `mappings.json`
 - Buildable as a standalone `.exe` (no Python install required on the target machine)
@@ -74,8 +74,8 @@ The executable is written to `dist\keyboard.exe`. Place or keep `mappings.json` 
 ## Usage
 
 1. Open the app (`uv run python keyboard.py` or `dist\keyboard.exe`).
-2. Press a key on your **physical keyboard** (the key you want to remap from).
-3. Click the matching key on the **visual keyboard** (what it should become — e.g. numpad keys for pc-98 games).
+2. Click a key on the **visual keyboard** (what the game should receive - e.g. numpad keys for pc-98 games).
+3. Press the key on your **physical keyboard** that should trigger it - the mapping is saved immediately.
 4. Click **Start Remapping** and leave the app running in the background while you play.
 
 Green keys on the visual keyboard are already used as mapping targets.
