@@ -53,11 +53,12 @@ class KeyRemapperApp(tk.Tk):
         self.engine = RemapperEngine(self.mappings)
         self._pending_source: str | None = None
         self._pending_target: str | None = None
-        self._listening_for_target = False
+        self._listening_for_source = False
         self._capture_cancel = Event()
 
         self._build_ui()
         self._refresh_mapping_list()
+        self._start_source_listen()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _set_window_icon(self) -> None:
@@ -89,8 +90,8 @@ class KeyRemapperApp(tk.Tk):
 
         columns = ("source", "target")
         self.tree = ttk.Treeview(list_frame, columns=columns, show="headings", height=5)
-        self.tree.heading("source", text="From")
-        self.tree.heading("target", text="To")
+        self.tree.heading("source", text="From (your keyboard)")
+        self.tree.heading("target", text="To (visual keyboard)")
         self.tree.column("source", width=200)
         self.tree.column("target", width=200)
 
@@ -105,14 +106,14 @@ class KeyRemapperApp(tk.Tk):
         add_frame.pack(fill=tk.BOTH, expand=True)
 
         self.hint_var = tk.StringVar(
-            value="Click a key on the keyboard below, then press the key on your physical keyboard it should become."
+            value="Press a key on your physical keyboard, then click the key on the visual keyboard it should become."
         )
         ttk.Label(add_frame, textvariable=self.hint_var, wraplength=900).pack(anchor=tk.W, pady=(0, 6))
 
         mapping_row = ttk.Frame(add_frame)
         mapping_row.pack(fill=tk.X, pady=(0, 8))
 
-        self.source_var = tk.StringVar(value="(not set)")
+        self.source_var = tk.StringVar(value="Press a key on your keyboard...")
         self.target_var = tk.StringVar(value="(not set)")
 
         ttk.Label(mapping_row, text="From:", width=6).pack(side=tk.LEFT)
@@ -135,13 +136,13 @@ class KeyRemapperApp(tk.Tk):
 
         ttk.Label(
             outer,
-            text="Tip: Green keys are already mapped. Stop remapping before adding new mappings.",
+            text="Tip: Green keys on the visual keyboard are already mapped targets. Stop remapping before adding new mappings.",
             foreground="gray",
         ).pack(anchor=tk.W, pady=(8, 0))
 
     def _sync_keyboard_highlights(self) -> None:
-        self.visual_keyboard.set_mapped_sources(set(self.mappings))
-        self.visual_keyboard.set_selected(self._pending_source)
+        self.visual_keyboard.set_mapped_targets(set(self.mappings.values()))
+        self.visual_keyboard.set_selected(self._pending_target)
 
     def _refresh_mapping_list(self) -> None:
         for item in self.tree.get_children():
@@ -164,11 +165,12 @@ class KeyRemapperApp(tk.Tk):
             self.engine.stop()
             self.status_var.set("Stopped")
             self.toggle_btn.configure(text="Start Remapping")
+            self._start_source_listen()
         else:
             if not self.mappings:
                 messagebox.showwarning("No mappings", "Add at least one key mapping first.")
                 return
-            self._stop_target_listen()
+            self._stop_source_listen()
             self.engine.start()
             self.status_var.set("Running")
             self.toggle_btn.configure(text="Stop Remapping")
@@ -177,58 +179,65 @@ class KeyRemapperApp(tk.Tk):
         if self.engine.running:
             messagebox.showinfo("Stop remapping", "Stop remapping before adding new mappings.")
             return
+        if self._pending_source is None:
+            messagebox.showinfo("Select source first", "Press a key on your physical keyboard first.")
+            return
 
-        self._pending_source = key_id
-        self._pending_target = None
-        self.source_var.set(key_id_to_display(key_id))
-        self.target_var.set("Press a key on your keyboard...")
-        self.hint_var.set(
-            f"Selected {key_id_to_display(key_id)}. Now press the key on your physical keyboard it should become."
-        )
+        self._pending_target = key_id
+        self.target_var.set(key_id_to_display(key_id))
         self._sync_keyboard_highlights()
-        self._start_target_listen()
+        self._apply_pending_mapping()
 
-    def _start_target_listen(self) -> None:
+    def _start_source_listen(self) -> None:
+        if self.engine.running:
+            return
         self._capture_cancel.set()
         self._capture_cancel = Event()
         cancel = self._capture_cancel
-        self._listening_for_target = True
-        Thread(target=self._run_target_capture, args=(cancel,), daemon=True).start()
+        self._listening_for_source = True
+        Thread(target=self._run_source_capture, args=(cancel,), daemon=True).start()
 
-    def _stop_target_listen(self) -> None:
-        self._listening_for_target = False
+    def _stop_source_listen(self) -> None:
+        self._listening_for_source = False
         self._capture_cancel.set()
 
-    def _run_target_capture(self, cancel: Event) -> None:
-        key_id = capture_key(timeout=15, cancel=cancel)
+    def _run_source_capture(self, cancel: Event) -> None:
+        key_id = capture_key(timeout=None, cancel=cancel)
 
         def finish() -> None:
             if cancel is not self._capture_cancel:
                 return
-            self._listening_for_target = False
+            self._listening_for_source = False
 
             if key_id is None:
-                if self._pending_source is not None and not cancel.is_set():
-                    self.target_var.set("(timed out)")
-                    self.hint_var.set("Timed out. Click a key on the visual keyboard to try again.")
+                if not cancel.is_set():
+                    self.source_var.set("(timed out)")
+                    self.hint_var.set("Timed out. Press a key on your physical keyboard to try again.")
+                    self._start_source_listen()
                 return
 
-            self._pending_target = key_id
-            self.target_var.set(key_id_to_display(key_id))
-            self._apply_pending_mapping()
+            self._pending_source = key_id
+            self._pending_target = None
+            self.source_var.set(key_id_to_display(key_id))
+            self.target_var.set("Click a key on the visual keyboard...")
+            self.hint_var.set(
+                f"From: {key_id_to_display(key_id)}. Click the key on the visual keyboard it should become."
+            )
+            self._sync_keyboard_highlights()
 
         self.after(0, finish)
 
     def _clear_capture_fields(self) -> None:
-        self._stop_target_listen()
-        self.source_var.set("(not set)")
+        self._stop_source_listen()
+        self.source_var.set("Press a key on your keyboard...")
         self.target_var.set("(not set)")
         self._pending_source = None
         self._pending_target = None
         self.hint_var.set(
-            "Click a key on the keyboard below, then press the key on your physical keyboard it should become."
+            "Press a key on your physical keyboard, then click the key on the visual keyboard it should become."
         )
         self._sync_keyboard_highlights()
+        self._start_source_listen()
 
     def _apply_pending_mapping(self) -> None:
         source_id = self._pending_source
@@ -246,7 +255,7 @@ class KeyRemapperApp(tk.Tk):
         self._refresh_mapping_list()
         added = f"{key_id_to_display(source_id)} → {key_id_to_display(target_id)}"
         self._clear_capture_fields()
-        self.hint_var.set(f"Added {added}. Click another key on the visual keyboard to add more.")
+        self.hint_var.set(f"Added {added}. Press another key on your physical keyboard to add more.")
 
     def _remove_selected(self) -> None:
         selected = self.tree.selection()
@@ -258,7 +267,7 @@ class KeyRemapperApp(tk.Tk):
         self._refresh_mapping_list()
 
     def _on_close(self) -> None:
-        self._stop_target_listen()
+        self._stop_source_listen()
         self.engine.stop()
         self._persist()
         self.destroy()

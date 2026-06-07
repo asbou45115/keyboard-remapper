@@ -130,7 +130,7 @@ class VisualKeyboard(tk.Canvas):
         self._on_key_selected = on_key_selected
         self._placed = _layout_keys()
         self._selected_id: str | None = None
-        self._mapped_sources: set[str] = set()
+        self._mapped_targets: set[str] = set()
         self._item_to_key_id: dict[int, str] = {}
         self._key_id_to_items: dict[str, list[int]] = {}
 
@@ -171,7 +171,7 @@ class VisualKeyboard(tk.Canvas):
     def _fill_for(self, key_id: str) -> str:
         if key_id == self._selected_id:
             return FILL_SELECTED
-        if key_id in self._mapped_sources:
+        if key_id in self._mapped_targets:
             return FILL_MAPPED
         return FILL_DEFAULT
 
@@ -186,8 +186,8 @@ class VisualKeyboard(tk.Canvas):
         self._selected_id = key_id
         self._refresh_colors()
 
-    def set_mapped_sources(self, sources: set[str]) -> None:
-        self._mapped_sources = set(sources)
+    def set_mapped_targets(self, targets: set[str]) -> None:
+        self._mapped_targets = set(targets)
         self._refresh_colors()
 
     def _key_at(self, x: int, y: int) -> str | None:
@@ -210,7 +210,7 @@ class VisualKeyboard(tk.Canvas):
             if (
                 key_id == placed.key.key_id
                 and placed.key.key_id != self._selected_id
-                and placed.key.key_id not in self._mapped_sources
+                and placed.key.key_id not in self._mapped_targets
             ):
                 fill = FILL_HOVER
             for item in self._key_id_to_items.get(placed.key.key_id, []):
