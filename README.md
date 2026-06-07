@@ -1,7 +1,8 @@
 # Key Remapper
 
-A GUI app that remaps any key to any other key. Useful for games with limited rebinding like pc-98 games which typically used numpad for movement.
+![Key Remapper](assets/image.png)
 
+A GUI app that remaps any key to any other key. Useful for games with limited rebinding like pc-98 games which typically used numpad for movement.
 ## Features
 
 - Remap any key to any other key via a simple GUI
@@ -24,6 +25,7 @@ A GUI app that remaps any key to any other key. Useful for games with limited re
 | `uv.lock`            | Locked dependency versions (uv)      |
 | `build.bat`          | One-click executable build script    |
 | `mappings.json`      | Saved key mappings (created at run)  |
+| `assets/`            | App icon (`.ico`) and README image   |
 
 ## Setup
 
@@ -49,7 +51,12 @@ uv run python keyboard.py
 
 Manually (after `uv sync`):
 ```powershell
-uv run pyinstaller --onefile --windowed --add-data "mappings.json;." keyboard.py
+uv run pyinstaller --onefile --windowed --icon assets/keyboard_linux_6170.ico --add-data "assets/keyboard_linux_6170.ico;assets" keyboard.py
+```
+
+Or with optional flag --add-data "mappings.json;." (ships out with current mappings)
+```powershell
+uv run pyinstaller --onefile --windowed --icon assets/keyboard_linux_6170.ico --add-data "assets/keyboard_linux_6170.ico;assets" --add-data "mappings.json;." keyboard.py
 ```
 
 If on windows:
@@ -63,9 +70,8 @@ The executable is written to `dist\KeyRemapper.exe`. Place or keep `mappings.jso
 
 1. Open the app (`uv run python keyboard.py` or `dist\KeyRemapper.exe`).
 2. Click a key on the **visual keyboard** (the key you want to remap — useful for numpad and other keys missing on a 75% board).
-3. Press the key on your **physical keyboard** that it should become.
-4. Click **Add Mapping**.
-5. Click **Start Remapping** and leave the app running in the background while you play.
+3. Press the key on your **physical keyboard** that it should become — the mapping is saved immediately.
+4. Click **Start Remapping** and leave the app running in the background while you play.
 
 Already-mapped source keys appear green on the visual keyboard. Selected keys appear blue.
 
@@ -77,3 +83,7 @@ To remove a mapping, select it in the list and click **Remove Selected**.
 - **Stop remapping** before adding new mappings.
 - Some games require running the app **as Administrator** for key suppression to work.
 - Supports single-key to single-key remapping only (not typing whole strings).
+
+## Credits
+
+Keyboard linux icon by Everaldo on [Icon-Icons.com](https://icon-icons.com/authors/28-everaldo).

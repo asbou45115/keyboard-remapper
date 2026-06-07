@@ -12,6 +12,12 @@ from keyboard_widget import VisualKeyboard
 from remapper_engine import RemapperEngine, capture_key
 
 
+def resource_path(relative: str) -> Path:
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS) / relative
+    return Path(__file__).parent / relative
+
+
 def config_path() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).parent / "mappings.json"
@@ -41,6 +47,7 @@ class KeyRemapperApp(tk.Tk):
         self.title("Key Remapper")
         self.geometry("1120x720")
         self.minsize(1120, 600)
+        self._set_window_icon()
 
         self.mappings = load_mappings()
         self.engine = RemapperEngine(self.mappings)
@@ -52,6 +59,14 @@ class KeyRemapperApp(tk.Tk):
         self._build_ui()
         self._refresh_mapping_list()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _set_window_icon(self) -> None:
+        icon = resource_path("assets/keyboard_linux_6170.ico")
+        if icon.exists():
+            try:
+                self.iconbitmap(str(icon))
+            except tk.TclError:
+                pass
 
     def _build_ui(self) -> None:
         outer = ttk.Frame(self, padding=12)
@@ -116,8 +131,7 @@ class KeyRemapperApp(tk.Tk):
 
         btn_row = ttk.Frame(add_frame)
         btn_row.pack(fill=tk.X, pady=(8, 0))
-        ttk.Button(btn_row, text="Add Mapping", command=self._add_mapping).pack(side=tk.LEFT)
-        ttk.Button(btn_row, text="Clear", command=self._clear_capture_fields).pack(side=tk.LEFT, padx=(8, 0))
+        ttk.Button(btn_row, text="Clear", command=self._clear_capture_fields).pack(side=tk.LEFT)
 
         ttk.Label(
             outer,
@@ -201,10 +215,7 @@ class KeyRemapperApp(tk.Tk):
 
             self._pending_target = key_id
             self.target_var.set(key_id_to_display(key_id))
-            self.hint_var.set(
-                f"Ready: {key_id_to_display(self._pending_source)} → {key_id_to_display(key_id)}. "
-                "Click Add Mapping or pick another source key."
-            )
+            self._apply_pending_mapping()
 
         self.after(0, finish)
 
@@ -219,21 +230,23 @@ class KeyRemapperApp(tk.Tk):
         )
         self._sync_keyboard_highlights()
 
-    def _add_mapping(self) -> None:
+    def _apply_pending_mapping(self) -> None:
         source_id = self._pending_source
         target_id = self._pending_target
 
         if not source_id or not target_id:
-            messagebox.showinfo("Missing keys", "Select a source key on the visual keyboard and press a target key.")
             return
         if source_id == target_id:
             messagebox.showwarning("Invalid mapping", "Source and target cannot be the same key.")
+            self._clear_capture_fields()
             return
 
         self.mappings[source_id] = target_id
         self._persist()
         self._refresh_mapping_list()
+        added = f"{key_id_to_display(source_id)} → {key_id_to_display(target_id)}"
         self._clear_capture_fields()
+        self.hint_var.set(f"Added {added}. Click another key on the visual keyboard to add more.")
 
     def _remove_selected(self) -> None:
         selected = self.tree.selection()

@@ -5,7 +5,7 @@ a = Analysis(
     ['keyboard.py'],
     pathex=[],
     binaries=[],
-    datas=[('mappings.json', '.')],
+    datas=[('assets/keyboard_linux_6170.ico', 'assets')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,4 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['assets\\keyboard_linux_6170.ico'],
 )
