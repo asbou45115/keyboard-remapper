@@ -11,10 +11,6 @@ A GUI app that remaps any key to any other key. Useful for games with limited re
 - Mappings saved automatically to `mappings.json`
 - Buildable as a standalone `.exe` (no Python install required on the target machine)
 
-## Default mappings
-
-On first run this is empty. 
-
 ## Project files
 
 | File                 | Purpose                              |

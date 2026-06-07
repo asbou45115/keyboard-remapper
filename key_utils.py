@@ -52,14 +52,6 @@ VK_NAMES = {
     123: "F12",
 }
 
-DEFAULT_MAPPINGS = {
-    "vk:104": "char:w",
-    "vk:100": "char:a",
-    "vk:102": "char:d",
-    "vk:98": "char:s",
-}
-
-
 def key_to_id(key) -> str | None:
     """Convert a pynput key event into a stable string identifier."""
     if isinstance(key, keyboard.Key):

@@ -7,7 +7,7 @@ from pathlib import Path
 from threading import Event, Thread
 from tkinter import messagebox, ttk
 
-from key_utils import DEFAULT_MAPPINGS, key_id_to_display
+from key_utils import key_id_to_display
 from keyboard_widget import VisualKeyboard
 from remapper_engine import RemapperEngine, capture_key
 
@@ -27,7 +27,7 @@ def load_mappings() -> dict[str, str]:
                 return {str(k): str(v) for k, v in data.items()}
         except (json.JSONDecodeError, OSError):
             pass
-    return dict(DEFAULT_MAPPINGS)
+    return {}
 
 
 def save_mappings(mappings: dict[str, str]) -> None:
