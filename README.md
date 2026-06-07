@@ -51,12 +51,17 @@ uv run python keyboard.py
 
 Manually (after `uv sync`):
 ```powershell
-uv run pyinstaller --onefile --windowed --icon assets/keyboard_linux_6170.ico --add-data "assets/keyboard_linux_6170.ico;assets" keyboard.py
+uv run pyinstaller keyboard.spec
 ```
 
-Or with optional flag --add-data "mappings.json;." (ships out with current mappings)
+Or without the spec file:
 ```powershell
-uv run pyinstaller --onefile --windowed --icon assets/keyboard_linux_6170.ico --add-data "assets/keyboard_linux_6170.ico;assets" --add-data "mappings.json;." keyboard.py
+uv run pyinstaller --onefile --windowed --name keyboard --icon assets/keyboard_linux_6170.ico --add-data "assets/keyboard_linux_6170.ico;assets" keyboard.py
+```
+
+To ship with current mappings:
+```powershell
+uv run pyinstaller keyboard.spec --add-data "mappings.json;."
 ```
 
 If on windows:
@@ -64,11 +69,11 @@ If on windows:
 .\build.bat
 ```
 
-The executable is written to `dist\KeyRemapper.exe`. Place or keep `mappings.json` in the same folder as the exe to persist your bindings.
+The executable is written to `dist\keyboard.exe`. Place or keep `mappings.json` in the same folder as the exe to persist your bindings.
 
 ## Usage
 
-1. Open the app (`uv run python keyboard.py` or `dist\KeyRemapper.exe`).
+1. Open the app (`uv run python keyboard.py` or `dist\keyboard.exe`).
 2. Click a key on the **visual keyboard** (the key you want to remap — useful for numpad and other keys missing on a 75% board).
 3. Press the key on your **physical keyboard** that it should become — the mapping is saved immediately.
 4. Click **Start Remapping** and leave the app running in the background while you play.
